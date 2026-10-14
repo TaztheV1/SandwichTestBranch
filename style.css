@@ -132,3 +132,7 @@ body { min-height: 100vh; background: linear-gradient(135deg,#ffdf24 0%,#ffb51b 
 @keyframes goldenClick { 50% { filter: drop-shadow(0 0 28px #ffe94d); } }
 #sandwichButton.golden-click { animation: goldenClick .45s ease; }
 @media (prefers-reduced-motion: reduce) { #sandwichButton.golden-click { animation: none; } }
+
+.team-wallet { margin: 8px 5px; color: #ffe25b; font-weight: 800; }
+#teamStatus { margin: 8px 5px; color: #cfdfef; font-size: 12px; line-height: 1.4; }
+.team .buy:disabled { opacity: .6; cursor: not-allowed; transform: none; filter: saturate(.4); }
