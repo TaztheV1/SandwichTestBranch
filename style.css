@@ -136,3 +136,26 @@ body { min-height: 100vh; background: linear-gradient(135deg,#ffdf24 0%,#ffb51b 
 .team-wallet { margin: 8px 5px; color: #ffe25b; font-weight: 800; }
 #teamStatus { margin: 8px 5px; color: #cfdfef; font-size: 12px; line-height: 1.4; }
 .team .buy:disabled { opacity: .6; cursor: not-allowed; transform: none; filter: saturate(.4); }
+
+.team-extra { grid-column: 2; grid-row: 3; }
+.team-extra .buy:disabled { opacity:.6; cursor:not-allowed; transform:none; filter:saturate(.4); }
+.team-extra .upgrade-icon { flex-basis:40px; height:48px; font-size:28px; }
+.team-extra .upgrade { padding:8px; gap:7px; }
+.team-extra h3 { font-size:14px; }
+.team-extra .upgrade-copy p { font-size:12px; }
+#offlineStatus, #leaderboardStatus { color:#cfdfef; font-size:12px; line-height:1.4; }
+.soup-board h2::before { content:'★ '; color:#ffe25b; }
+.team-extra.global h2::before { content:'✦ '; }
+@media (max-width:760px) { .team-extra { order:4; } }
+
+.crit-vfx { position:absolute; z-index:10; width:0; height:0; pointer-events:none; }
+.crit-label { position:absolute; left:0; top:0; white-space:nowrap; color:#fff36a; font-size:clamp(26px,4vw,54px); font-weight:900; font-style:italic; -webkit-text-stroke:1px #7c3200; text-shadow:0 3px 0 #a44800,0 0 15px #ffaf22; animation:critText .9s ease-out both; }
+.crit-ring { position:absolute; left:-35px; top:-35px; width:70px; height:70px; border:4px solid #ffec68; border-radius:50%; animation:critRing .55s ease-out both; }
+.crit-spark { position:absolute; left:-4px; top:-4px; width:8px; height:8px; border-radius:2px; background:#fff7a1; box-shadow:0 0 8px #ff9e00; animation:critSpark .65s ease-out both; }
+@keyframes critText { 0% { opacity:0; transform:translate(-50%,0) scale(.45) rotate(-9deg); } 18% { opacity:1; transform:translate(-50%,-25px) scale(1.12) rotate(-6deg); } 65% { opacity:1; } 100% { opacity:0; transform:translate(-50%,-105px) scale(.95) rotate(-3deg); } }
+@keyframes critRing { from { opacity:.9; transform:scale(.4); } to { opacity:0; transform:scale(3); } }
+@keyframes critSpark { from { opacity:1; transform:translate(0,0) scale(1); } to { opacity:0; transform:translate(var(--dx),var(--dy)) scale(.1); } }
+@media (prefers-reduced-motion:reduce) {
+  .crit-label { animation:none; transform:translate(-50%,-30px); }
+  .crit-ring,.crit-spark { display:none; }
+}
