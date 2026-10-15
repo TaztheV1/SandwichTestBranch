@@ -57,7 +57,7 @@ let db, doc, setDoc, serverTimestamp;
 
 const TEAM_COSTS = {"power": [10, 15, 23, 34, 51, 76, 114, 171, 257, 385, 577, 865, 1298, 1947, 2920, 4379, 6569, 9853, 14779, 22169], "kitchen": [10, 16, 25, 38, 58, 90, 139, 215, 334, 517, 801, 1241, 1924, 2981, 4621, 7162, 11100, 17205, 26667, 41334], "motivation": [10, 16, 26, 41, 66, 105, 168, 269, 430, 688, 1100, 1760, 2815, 4504, 7206, 11530, 18447, 29515, 47224, 75558], "crit": [10, 16, 25, 38, 58, 90, 139, 215, 334, 517, 801, 1241, 1924, 2981, 4621, 7162, 11100, 17205, 26667, 41334], "offline": [10, 16, 26, 41, 66, 105, 168, 269, 430, 688, 1100, 1760, 2815, 4504, 7206, 11530, 18447, 29515, 47224, 75558], "doubleRP": [15, 25, 41, 68, 112, 184, 303, 500, 825, 1360, 2244, 3702, 6108, 10079, 16630, 27438, 45273, 74700, 123255, 203370]};
 const teamKeys = ["power", "kitchen", "motivation", "crit", "offline", "doubleRP"];
-const teamRows = [...document.querySelectorAll(".team .upgrade, .team-extra .upgrade")];
+const teamRows = [...document.querySelectorAll(".team .upgrade")];
 let team = { points: 0, levels: { power: 0, kitchen: 0, motivation: 0, crit: 0, offline: 0, doubleRP: 0 } };
 let teamReady = false, teamBusy = false, rebirthBusy = false;
 let runTransaction, onSnapshot, teamRef, collection, query, orderBy, limit;
@@ -225,6 +225,7 @@ rebirthButton.addEventListener("click", async () => {
         upgrades: { power: 0, auto: 0, luck: 0 }, updatedAt: serverTimestamp() }, { merge: true });
       transaction.update(teamRef, { points: global.data().points + rpAward, lastActor: uid, updatedAt: serverTimestamp() });
       transaction.set(doc(db, "rebirthLeaderboard", uid), { rebirths: previousRebirths + 1, updatedAt: serverTimestamp() });
+      publishSandwichBalance(transaction, "0");
     });
     clicks = 0n; upgrades = { power: 0, auto: 0, luck: 0 };
     autoRemainder = 0; manualFraction = 0n; automaticFraction = 0n;
@@ -269,6 +270,7 @@ async function saveGameData(force = false) {
         throw new Error("Cloud rebirth changed in another tab. Reload to continue.");
       transaction.set(playerRef, snapshot, { merge: true });
       transaction.set(doc(db, "rebirthLeaderboard", uid), { rebirths: snapshot.rebirths, updatedAt: serverTimestamp() });
+      publishSandwichBalance(transaction, snapshot.clicks);
     });
     if (revision === savedRevision) dirty = false;
     saveStatus.textContent = dirty ? "New progress will save automatically." : "Cloud saved.";
@@ -305,6 +307,7 @@ async function claimOfflineEarnings() {
       const balance = BigInt(data.clicks) + award;
       transaction.set(playerRef, { clicks: balance.toString(), updatedAt: serverTimestamp() }, { merge: true });
       transaction.set(doc(db, "rebirthLeaderboard", uid), { rebirths: data.rebirths, updatedAt: serverTimestamp() });
+      publishSandwichBalance(transaction, balance.toString());
       return { data, balance, award };
     });
     clicks = result.balance; restoreUpgrades(result.data);
@@ -314,6 +317,36 @@ async function claimOfflineEarnings() {
   } catch (error) {
     document.getElementById("offlineStatus").textContent = `Offline earnings unavailable: ${error.message}`;
   } finally { offlineBusy = false; playing = wasPlaying; updateUI(); }
+}
+function publishSandwichBalance(transaction, value) {
+  // Digit count sorts arbitrary-size balances numerically; decimal text breaks ties.
+  transaction.set(doc(db, "sandwichLeaderboard", uid), {
+    clicks: value, digits: value.length, updatedAt: serverTimestamp()
+  });
+}
+function initialiseSandwichLeaderboard() {
+  const list = document.getElementById("sandwichLeaderboard");
+  const status = document.getElementById("sandwichLeaderboardStatus");
+  onSnapshot(query(collection(db, "sandwichLeaderboard"), orderBy("digits", "desc"), orderBy("clicks", "desc"), limit(5)), snapshot => {
+    list.replaceChildren();
+    if (snapshot.empty) { const row = document.createElement("li"); row.textContent = "No sandwich balances recorded yet."; list.append(row); }
+    snapshot.docs.forEach((entry, index) => {
+      const row = document.createElement("li");
+      const rank = document.createElement("span"); rank.className = "rank"; rank.textContent = index + 1;
+      const name = document.createElement("span"); name.textContent = entry.id === uid ? "You" : `Player ${entry.id.slice(0, 6)}`;
+      const score = document.createElement("strong");
+      const amount = BigInt(entry.data().clicks);
+      score.textContent = amount.toLocaleString(undefined, { notation: "compact", maximumFractionDigits: 2 });
+      score.title = amount.toLocaleString();
+      row.append(rank, name, score); list.append(row);
+    });
+    status.textContent = "Live top 5 · current saved balance · updates on autosave.";
+  }, error => {
+    status.textContent = error.code === "failed-precondition"
+      ? "Leaderboard index is not ready. Create the included Firebase index."
+      : "Leaderboard unavailable. Check the updated Firebase rules.";
+    console.error("Sandwich leaderboard:", error);
+  });
 }
 function initialiseLeaderboard() {
   const list = document.getElementById("rebirthLeaderboard");
@@ -366,7 +399,8 @@ async function initialise() {
     try {
       await initialiseTeam();
       await claimOfflineEarnings();
-      initialiseLeaderboard(); } catch (error) {
+      initialiseLeaderboard();
+      initialiseSandwichLeaderboard(); } catch (error) {
       document.getElementById("teamStatus").textContent = "Global pool unavailable. Publish updated Firestore rules and reload.";
       console.error(error);
     }

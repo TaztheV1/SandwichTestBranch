@@ -137,16 +137,8 @@ body { min-height: 100vh; background: linear-gradient(135deg,#ffdf24 0%,#ffb51b 
 #teamStatus { margin: 8px 5px; color: #cfdfef; font-size: 12px; line-height: 1.4; }
 .team .buy:disabled { opacity: .6; cursor: not-allowed; transform: none; filter: saturate(.4); }
 
-.team-extra { grid-column: 2; grid-row: 3; }
-.team-extra .buy:disabled { opacity:.6; cursor:not-allowed; transform:none; filter:saturate(.4); }
-.team-extra .upgrade-icon { flex-basis:40px; height:48px; font-size:28px; }
-.team-extra .upgrade { padding:8px; gap:7px; }
-.team-extra h3 { font-size:14px; }
-.team-extra .upgrade-copy p { font-size:12px; }
 #offlineStatus, #leaderboardStatus { color:#cfdfef; font-size:12px; line-height:1.4; }
 .soup-board h2::before { content:'★ '; color:#ffe25b; }
-.team-extra.global h2::before { content:'✦ '; }
-@media (max-width:760px) { .team-extra { order:4; } }
 
 .crit-vfx { position:absolute; z-index:10; width:0; height:0; pointer-events:none; }
 .crit-label { position:absolute; left:0; top:0; white-space:nowrap; color:#fff36a; font-size:clamp(26px,4vw,54px); font-weight:900; font-style:italic; -webkit-text-stroke:1px #7c3200; text-shadow:0 3px 0 #a44800,0 0 15px #ffaf22; animation:critText .9s ease-out both; }
@@ -159,3 +151,15 @@ body { min-height: 100vh; background: linear-gradient(135deg,#ffdf24 0%,#ffb51b 
   .crit-label { animation:none; transform:translate(-50%,-30px); }
   .crit-ring,.crit-spark { display:none; }
 }
+
+/* One shared global-upgrade panel containing all six upgrades. */
+.team { grid-column:2; grid-row:1 / 4; align-self:stretch; }
+.team .upgrade { padding:10px 8px; gap:8px; }
+.team .upgrade-icon { flex-basis:42px; height:52px; font-size:30px; }
+.team h3 { font-size:15px; }
+.team .upgrade-copy p { font-size:12px; }
+.team .buy { flex-basis:95px; }
+.leaderboard li > span:not(.rank):not(.avatar) { min-width:0; overflow-wrap:anywhere; }
+.leaderboard li strong { flex-shrink:0; }
+@media (max-width:1150px) and (min-width:761px) { .team { grid-row:1 / 4; }.team .buy { flex-basis:80px; } }
+@media (max-width:760px) { .team { order:2; } }
